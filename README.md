@@ -13,6 +13,7 @@ Features
 * Small size, ideally under 4KB to fit on the first four pages.
 * RDP protection configurable at build time.
 * Reboot into DFU mode support (by writing tag to RAM + reset).
+* Watchdog support for failsafe.
 * Total wipe on DFU downloads (avoid partial FW updates).
 * Optional upload enable (to prevent firmware/data reads).
 * Firmware checksum checking.
@@ -41,14 +42,18 @@ a small firmware being uploaded to extract data fromt flash. With this
 protection enabled the bootloader will wipe all the blocks as soon as
 an erase/write command is issued.
 
-DFU mode on GPIO pin
---------------------
+Force DFU mode
+--------------
 
 The bootloader can be configured to detect a GPIO condition on boot and
 abort boot to go into DFU mode. The pin will be configured as an internal
 pulldown and the user will need to pull it up to force DFU mode, which
 will be read right after reset (there's some small delay to ensure the
 pin is read correclty).
+
+The firmware can optionally enable the Interal Watchdog on a configurable
+period of 1 to 26 seconds. If the user app does not reset the watchdog
+before the period is due it will reset the system and enter DFU mode.
 
 Firmware format and checksum
 ----------------------------
