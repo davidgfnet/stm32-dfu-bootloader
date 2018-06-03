@@ -48,7 +48,7 @@ static char serial_no[25];
 #define STR(x) STR_HELPER(x)
 const char * const _usb_strings[4] = {
 	"davidgf.net (libopencm3 based)",
-	"DFU bootloader",
+	"DFU bootloader [" VERSION "]",
 	serial_no,
 	/* This string is used by ST Microelectronics' DfuSe utility. */
 	/* Change check_do_erase() accordingly */
