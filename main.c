@@ -383,7 +383,7 @@ int main(void) {
 	#ifdef ENABLE_WATCHDOG
 	             reset_due_to_watchdog() ||
 	#endif
-	             imagesize > FLASH_BOOTLDR_PAYLOAD_SIZE_KB*1024 ||
+	             imagesize > FLASH_BOOTLDR_PAYLOAD_SIZE_KB*1024/4 ||
 	             force_dfu_gpio();
 	             
 	if (!go_dfu && 
@@ -391,7 +391,7 @@ int main(void) {
 
 		// Do some simple XOR checking
 		uint32_t xorv = 0;
-		for (unsigned i = 0; i < imagesize/4; i++)
+		for (unsigned i = 0; i < imagesize; i++)
 			xorv ^= base_addr[i];
 
 		if (xorv == 0) {  // Matches!
