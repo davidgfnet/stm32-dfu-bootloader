@@ -56,17 +56,6 @@ static int _flash_page_is_erased(uint32_t addr) {
 	return 1;
 }
 
-static void _flash_erase_option_bytes() {
-	_flash_wait_for_last_operation();
-
-	FLASH_CR |= FLASH_CR_OPTER;
-	FLASH_CR |= FLASH_CR_STRT;
-
-	_flash_wait_for_last_operation();
-
-	FLASH_CR &= ~FLASH_CR_OPTER;
-}
-
 static void _flash_program_buffer(uint32_t address, uint16_t *data, unsigned len) {
 	_flash_wait_for_last_operation();
 
@@ -83,6 +72,18 @@ static void _flash_program_buffer(uint32_t address, uint16_t *data, unsigned len
 	FLASH_CR &= ~FLASH_CR_PG;
 }
 
+#ifdef ENABLE_PROTECTIONS
+static void _flash_erase_option_bytes() {
+	_flash_wait_for_last_operation();
+
+	FLASH_CR |= FLASH_CR_OPTER;
+	FLASH_CR |= FLASH_CR_STRT;
+
+	_flash_wait_for_last_operation();
+
+	FLASH_CR &= ~FLASH_CR_OPTER;
+}
+
 static void _flash_program_option_bytes(uint32_t address, uint16_t data) {
 	_flash_wait_for_last_operation();
 
@@ -92,7 +93,7 @@ static void _flash_program_option_bytes(uint32_t address, uint16_t data) {
 	_flash_wait_for_last_operation();
 	FLASH_CR &= ~FLASH_CR_OPTPG;  // Disable option byte programming.
 }
-
+#endif
 
 #ifdef ENABLE_SAFEWRITE
 static void check_do_erase() {
