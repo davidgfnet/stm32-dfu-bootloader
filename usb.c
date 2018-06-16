@@ -8,7 +8,7 @@
 
 // Defined in main
 extern uint8_t usbd_control_buffer[1024];
-extern const char * const _usb_strings[4];
+extern const char * const _usb_strings[5];
 extern enum usbd_request_return_codes
 usbdfu_control_request(struct usb_setup_data *req,
 		uint16_t *len, void (**complete)(struct usb_setup_data *req));
@@ -49,7 +49,7 @@ const struct {
 		.wTotalLength = sizeof(config_desc),
 		.bNumInterfaces = 1,
 		.bConfigurationValue = 1,
-		.iConfiguration = 0,
+		.iConfiguration = 5,
 		.bmAttributes = 0xC0,
 		.bMaxPower = 0x32,
 	},

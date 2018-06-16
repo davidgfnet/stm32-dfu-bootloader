@@ -47,15 +47,30 @@ static char serial_no[25];
 
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
-const char * const _usb_strings[4] = {
-	"davidgf.net (libopencm3 based)",
-	"DFU bootloader [" VERSION "]",
-	serial_no,
+const char * const _usb_strings[5] = {
+	"davidgf.net (libopencm3 based)", // iManufacturer
+	"DFU bootloader [" VERSION "]", // iProduct
+	serial_no, // iSerialNumber
+	// Interface desc string
 	/* This string is used by ST Microelectronics' DfuSe utility. */
 	/* Change check_do_erase() accordingly */
 	"@Internal Flash /0x08000000/"
 	  STR(FLASH_BOOTLDR_SIZE_KB) "*001Ka,"
 	  STR(FLASH_BOOTLDR_PAYLOAD_SIZE_KB) "*001Kg",
+	// Config desc string
+	"Bootloader config: "
+	#ifdef ENABLE_WATCHDOG
+	"WtDg[" STR(ENABLE_WATCHDOG) "s] "
+	#endif
+	#ifdef ENABLE_SAFEWRITE
+	"SafeWr "
+	#endif
+	#ifdef ENABLE_PROTECTIONS
+	"RDO/DBG "
+	#endif
+	#ifdef ENABLE_CHECKSUM
+	"FW-CRC "
+	#endif
 };
 
 static const char hcharset[16] = "0123456789abcdef";
