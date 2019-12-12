@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python3
 # Patches a firmware binary to hold the right checksum
 # Checksum is a 32bit filed at offset 0x1C, whereas
 # firmware size is stored at 0x20 (little endian, words)
@@ -8,14 +8,14 @@ import sys, struct
 fwbin = open(sys.argv[1], "rb").read()
 
 # Ensure the firmware is word size aligned
-print "Firmware size", len(fwbin)
+print("Firmware size", len(fwbin))
 while len(fwbin) % 4 != 0:
-	fwbin += "\x00"
-print "Firmware size after padding", len(fwbin)
+	fwbin += b"\x00"
+print("Firmware size after padding", len(fwbin))
 
 # Patch 0x1C with zero, 0x20 with the FW size too
-sizestr = struct.pack("<I", len(fwbin) / 4)
-fwbin = fwbin[:0x1C] + "\x00\x00\x00\x00" + sizestr + fwbin[0x24:]
+sizestr = struct.pack("<I", len(fwbin) // 4)
+fwbin = fwbin[:0x1C] + b"\x00\x00\x00\x00" + sizestr + fwbin[0x24:]
 
 # Calculate the checksum, whole file with padding
 xorv = 0
