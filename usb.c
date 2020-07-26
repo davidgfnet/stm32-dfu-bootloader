@@ -67,7 +67,12 @@ const struct {
 	.dfu_function = {
 		.bLength = sizeof(struct usb_dfu_descriptor),
 		.bDescriptorType = DFU_FUNCTIONAL,
-		.bmAttributes = USB_DFU_CAN_DOWNLOAD | USB_DFU_WILL_DETACH,
+		.bmAttributes =
+			#ifdef ENABLE_DFU_UPLOAD
+			USB_DFU_CAN_UPLOAD |
+			#endif
+			USB_DFU_CAN_DOWNLOAD |
+			USB_DFU_WILL_DETACH,
 		.wDetachTimeout = 255,
 		.wTransferSize = DFU_TRANSFER_SIZE,
 		.bcdDFUVersion = 0x011A,
