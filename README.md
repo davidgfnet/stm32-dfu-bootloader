@@ -88,6 +88,8 @@ Config flags
   You need to define GPIO_DFU_BOOT_PORT and GPIO_DFU_BOOT_PIN to either
   GPIOA, GPIOB, .. GPIOE and 0 .. 15 to indicate which port to enable and
   what pin to read from.
+* ENABLE_PINRST_DFU_BOOT: Enables DFU mode when a reset from the NRST pin
+  occurs.
 
 By default all flags are set except for DFU upload, so it's most secure.
 
