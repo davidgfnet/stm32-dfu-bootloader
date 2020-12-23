@@ -325,6 +325,23 @@ int force_dfu_gpio() {
 #define RCC_CR       (*(volatile uint32_t*)0x40021000U)
 #define RCC_CFGR     (*(volatile uint32_t*)0x40021004U)
 
+#define RCC_CSR      (*(volatile uint32_t*)0x40021024U)
+#define RCC_CSR_LPWRRSTF    (1 << 31)
+#define RCC_CSR_WWDGRSTF    (1 << 30)
+#define RCC_CSR_IWDGRSTF    (1 << 29)
+#define RCC_CSR_SFTRSTF     (1 << 28)
+#define RCC_CSR_PORRSTF     (1 << 27)
+#define RCC_CSR_PINRSTF     (1 << 26)
+#define RCC_CSR_RMVF        (1 << 24)
+
+#ifdef ENABLE_PINRST_DFU_BOOT
+static inline int reset_due_to_pin() {
+	return (RCC_CSR & RCC_CSR_PINRSTF) &&
+	       !(RCC_CSR & (RCC_CSR_LPWRRSTF | RCC_CSR_WWDGRSTF |
+	       RCC_CSR_IWDGRSTF | RCC_CSR_SFTRSTF | RCC_CSR_PORRSTF));
+}
+#endif
+
 static void clock_setup_in_hse_8mhz_out_72mhz() {
 	// No need to use HSI or HSE while setting up the PLL, just use the RC osc.
 
@@ -347,7 +364,7 @@ static void clock_setup_in_hse_8mhz_out_72mhz() {
 	// 1WS from 24-48MHz
 	// 2WS from 48-72MHz
 	FLASH_ACR = (FLASH_ACR & ~FLASH_ACR_LATENCY) | FLASH_ACR_LATENCY_2WS;
-	
+
 	/* Enable PLL oscillator and wait for it to stabilize. */
     RCC_CR |= RCC_CR_PLLON;
 	while (!(RCC_CR & RCC_CR_PLLRDY));
@@ -358,7 +375,7 @@ static void clock_setup_in_hse_8mhz_out_72mhz() {
 
 int main(void) {
 	/* Boot the application if it seems valid and we haven't been
-	 * asked to reboot into DFU mode. This should make the CPU to 
+	 * asked to reboot into DFU mode. This should make the CPU to
 	 * boot into DFU if the user app has been erased. */
 
 	#ifdef ENABLE_PROTECTIONS
@@ -395,13 +412,18 @@ int main(void) {
 	#endif
 
 	int go_dfu = rebooted_into_dfu() ||
+	#ifdef ENABLE_PINRST_DFU_BOOT
+	             reset_due_to_pin() ||
+	#endif
 	#ifdef ENABLE_WATCHDOG
 	             reset_due_to_watchdog() ||
 	#endif
 	             imagesize > FLASH_BOOTLDR_PAYLOAD_SIZE_KB*1024/4 ||
 	             force_dfu_gpio();
-	             
-	if (!go_dfu && 
+
+	RCC_CSR |= RCC_CSR_RMVF;
+
+	if (!go_dfu &&
 	   (*(volatile uint32_t *)APP_ADDRESS & 0x2FFE0000) == 0x20000000) {
 
 		// Do some simple XOR checking
