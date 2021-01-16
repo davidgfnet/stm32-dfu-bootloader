@@ -20,7 +20,8 @@ CFLAGS = -Os -ggdb -std=c11 -Wall -pedantic -Werror \
 
 LDFLAGS = -ggdb -ffunction-sections -fdata-sections \
 	-Wl,-Tstm32f103.ld -nostartfiles -lc -lnosys \
-	-mthumb -mcpu=cortex-m3 -Wl,-gc-sections -flto
+	-mthumb -mcpu=cortex-m3 -Wl,-gc-sections -flto \
+	-Wl,--print-memory-usage
 
 all:	bootloader-dfu-fw.bin
 
