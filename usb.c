@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "usb.h"
+#include "config.h"
 
 // Defined in main
 extern uint8_t usbd_control_buffer[1024];
@@ -29,8 +30,8 @@ const struct usb_device_descriptor dev_desc = {
 	.bDeviceSubClass = 0,
 	.bDeviceProtocol = 0,
 	.bMaxPacketSize0 = 64,
-	.idVendor = 0xdead,
-	.idProduct = 0xca5d,
+	.idVendor = USB_VID,
+	.idProduct = USB_PID,
 	.bcdDevice = 0x0200,
 	.iManufacturer = 1,
 	.iProduct = 2,
