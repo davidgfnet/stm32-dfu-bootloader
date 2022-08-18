@@ -273,7 +273,7 @@ inline static void gpio_set_mode(uint32_t gpiodev, uint16_t gpion, uint8_t mode)
 	if (gpion < 8)
 		GPIO_CRL(gpiodev) = (GPIO_CRL(gpiodev) & ~(0xf << ((gpion)<<2))) | (mode << ((gpion)<<2));
 	else
-		GPIO_CRH(gpiodev) = (GPIO_CRL(gpiodev) & ~(0xf << ((gpion-8)<<2))) | (mode << ((gpion-8)<<2));
+		GPIO_CRH(gpiodev) = (GPIO_CRH(gpiodev) & ~(0xf << ((gpion-8)<<2))) | (mode << ((gpion-8)<<2));
 }
 
 #define gpio_set_output(a,b)    gpio_set_mode(a,b,0x2)
