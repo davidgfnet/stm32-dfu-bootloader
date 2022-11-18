@@ -478,6 +478,7 @@ int main(void) {
 }
 
 // Implement this here to save space, quite minimalistic :D
+__attribute__((used))
 void *memcpy(void * dst, const void * src, size_t count) {
 	uint8_t * dstb = (uint8_t*)dst;
 	uint8_t * srcb = (uint8_t*)src;
