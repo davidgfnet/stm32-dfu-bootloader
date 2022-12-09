@@ -16,7 +16,7 @@ CONFIG ?= -DENABLE_PROTECTIONS -DENABLE_CHECKSUM -DENABLE_SAFEWRITE -DENABLE_WAT
 CFLAGS = -Os -ggdb -std=c11 -Wall -pedantic -Werror \
 	-ffunction-sections -fdata-sections -Wno-overlength-strings \
 	-mcpu=cortex-m3 -mthumb -DSTM32F1 -fno-builtin-memcpy  \
-	-pedantic -DVERSION=\"$(GIT_VERSION)\" -flto $(CONFIG)
+	-fno-builtin-strlen -pedantic -DVERSION=\"$(GIT_VERSION)\" -flto $(CONFIG)
 
 LDFLAGS = -ggdb -ffunction-sections -fdata-sections \
 	-Wl,-Tstm32f103.ld -nostartfiles -lc -lnosys \
