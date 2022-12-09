@@ -26,7 +26,7 @@ sizestr = struct.pack("<I", fwlen // 4)
 fwbin = fwbin[:0x1C] + b"\x00\x00\x00\x00" + sizestr + fwbin[0x24:]
 
 # Calculate the checksum, whole file with padding
-xorv = 0
+xorv = 0xB4DC0FEE
 for i in range(0, fwlen, 4):
 	xorv ^= struct.unpack("<I", fwbin[i:i+4])[0]
 

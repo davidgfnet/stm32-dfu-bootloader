@@ -427,7 +427,7 @@ int main(void) {
 	   (*(volatile uint32_t *)APP_ADDRESS & 0x2FFE0000) == 0x20000000) {
 
 		// Do some simple XOR checking
-		uint32_t xorv = 0;
+		uint32_t xorv = 0xB4DC0FEE;
 		for (unsigned i = 0; i < imagesize; i++)
 			xorv ^= base_addr[i];
 
