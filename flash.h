@@ -1,36 +1,32 @@
 
 // Flashing routines //
 
-#define FLASH_CR_LOCK  (1 << 7)
-#define FLASH_CR_STRT  (1 << 6)
-#define FLASH_CR_OPTER (1 << 5)
-#define FLASH_CR_OPTPG (1 << 4)
-#define FLASH_CR_PER   (1 << 1)
-#define FLASH_CR_PG   (1 << 0)
-#define FLASH_SR_BSY   (1 << 0)
+#define FLASH_CR_OPTWRE (1 << 9)
+#define FLASH_CR_LOCK   (1 << 7)
+#define FLASH_CR_STRT   (1 << 6)
+#define FLASH_CR_OPTER  (1 << 5)
+#define FLASH_CR_OPTPG  (1 << 4)
+#define FLASH_CR_PER    (1 << 1)
+#define FLASH_CR_PG     (1 << 0)
+#define FLASH_SR_BSY    (1 << 0)
 #define FLASH_KEYR    (*(volatile uint32_t*)0x40022004U)
 #define FLASH_OPTKEYR (*(volatile uint32_t*)0x40022008U)
 #define FLASH_SR      (*(volatile uint32_t*)0x4002200CU)
 #define FLASH_CR      (*(volatile uint32_t*)0x40022010U)
 #define FLASH_AR      (*(volatile uint32_t*)0x40022014U)
 
-static void _flash_unlock(int opt) {
+static void _flash_lock() {
 	// Clear the unlock state.
 	FLASH_CR |= FLASH_CR_LOCK;
-
-	// Authorize the FPEC access.
-	FLASH_KEYR = 0x45670123U;
-	FLASH_KEYR = 0xcdef89abU;
-
-	if (opt) {
-		// F1 uses same keys for flash and option
-		FLASH_OPTKEYR = 0x45670123U;
-		FLASH_OPTKEYR = 0xcdef89abU;
-	}
 }
 
-static void _flash_lock() {
-	FLASH_CR |= FLASH_CR_LOCK;
+static void _flash_unlock() {
+	// Only if locked!
+	if (FLASH_CR & FLASH_CR_LOCK) {
+		// Authorize the FPEC access.
+		FLASH_KEYR = 0x45670123U;
+		FLASH_KEYR = 0xcdef89abU;
+	}
 }
 
 #define _flash_wait_for_last_operation() \
@@ -72,7 +68,7 @@ static void _flash_program_buffer(uint32_t address, uint16_t *data, unsigned len
 	FLASH_CR &= ~FLASH_CR_PG;
 }
 
-#ifdef ENABLE_PROTECTIONS
+#if defined(ENABLE_PROTECTIONS) || defined(ENABLE_WRITEPROT)
 static void _flash_erase_option_bytes() {
 	_flash_wait_for_last_operation();
 
@@ -92,6 +88,14 @@ static void _flash_program_option_bytes(uint32_t address, uint16_t data) {
 	*addr_ptr = data;
 	_flash_wait_for_last_operation();
 	FLASH_CR &= ~FLASH_CR_OPTPG;  // Disable option byte programming.
+}
+
+static void _optbytes_unlock() {
+	if (!(FLASH_CR & FLASH_CR_OPTWRE)) {
+		// F1 uses same keys for flash and option
+		FLASH_OPTKEYR = 0x45670123U;
+		FLASH_OPTKEYR = 0xcdef89abU;
+	}
 }
 #endif
 

@@ -65,8 +65,11 @@ const char * const _usb_strings[5] = {
 	#ifdef ENABLE_SAFEWRITE
 	"SafeWr "
 	#endif
+	#ifdef ENABLE_WRITEPROT
+	"ROboot "
+	#endif
 	#ifdef ENABLE_PROTECTIONS
-	"RDO/DBG "
+	"RDO/DBG ROboot "
 	#endif
 	#ifdef ENABLE_CHECKSUM
 	"FW-CRC "
@@ -125,7 +128,7 @@ static void usbdfu_getstatus_complete(struct usb_setup_data *req) {
 
 	switch (usbdfu_state) {
 	case STATE_DFU_DNBUSY:
-		_flash_unlock(0);
+		_flash_unlock();
 		if (prog.blocknum == 0) {
 			switch (prog.buf[0]) {
 			case CMD_ERASE: {
@@ -305,7 +308,12 @@ int force_dfu_gpio() {
 
 #define FLASH_ACR_LATENCY         7
 #define FLASH_ACR_LATENCY_2WS  0x02
-#define FLASH_ACR (*(volatile uint32_t*)0x40022000U)
+#define FLASH_ACR          (*(volatile uint32_t*)0x40022000U)
+#define FLASH_OBR          (*(volatile uint32_t*)0x4002201CU)
+#define FLASH_WRPR         (*(volatile uint32_t*)0x40022020U)
+#define FLASH_OPT_BYTES    ((volatile uint16_t*)0x1FFFF800U)
+#define WORD_RDP           0
+#define WORD_WRP0          4
 
 #define RCC_CFGR_HPRE_SYSCLK_NODIV      0x0
 #define RCC_CFGR_PPRE1_HCLK_DIV2        0x4
@@ -378,22 +386,46 @@ int main(void) {
 	 * asked to reboot into DFU mode. This should make the CPU to
 	 * boot into DFU if the user app has been erased. */
 
-	#ifdef ENABLE_PROTECTIONS
-	// Check for RDP protection, and in case it's not enabled, do it!
-	volatile uint32_t *_flash_obr = (uint32_t*)0x4002201CU;
-	if (!((*_flash_obr) & 0x2)) {
-		// Read protection NOT enabled ->
+	#ifdef ENABLE_WRITEPROT
+	// On every boot we check the FLASH WPR bits and proceed to protect
+	// the bootloader if it's unprotected. This requires a reset.
+	// If the device was DFU-rebooted we skip this check, to allow for
+	// bootloader updates.
+	if (!rebooted_into_updater() && (FLASH_WRPR & 1)) {
+		// Make a copy of the opt bytes so that we only modify what we need to.
+		uint16_t opt[8];
+		memcpy(&opt[0], (uint16_t*)FLASH_OPT_BYTES, sizeof(opt));
 
-		// Unlock option bytes
-		_flash_unlock(1);
+		opt[WORD_WRP0] &= ~0x0001;    // Bit 0 write protects pages 0-3 (4KB)
+		opt[WORD_WRP0] |=  0x0100;
 
-		// Delete them all
+		_flash_unlock();
+		_optbytes_unlock();
 		_flash_erase_option_bytes();
 
-		// Now write a pair of bytes that are complentary [RDP, nRDP]
-		_flash_program_option_bytes(0x1FFFF800U, 0x33CC);
+		for (unsigned i = 0; i < 8; i++)
+			_flash_program_option_bytes((uint32_t)(&FLASH_OPT_BYTES[i]), opt[i]);
 
-		// Now reset, for RDP to take effect. We should not re-enter this path
+		_full_system_reset();
+	}
+	#endif
+
+	#ifdef ENABLE_PROTECTIONS
+	// Check for RDP protection, and in case it's not enabled, do it!
+	if (!(FLASH_OBR & 0x2)) {
+		// Read protection NOT enabled -> Enable it and reboot
+		uint16_t opt[8];
+		memcpy(&opt[0], (uint16_t*)FLASH_OPT_BYTES, sizeof(opt));
+		opt[WORD_RDP] = 0xFFFF;    // This means protected (L1) according to docs
+
+		// Unlock option bytes and wipe them
+		_flash_unlock();
+		_optbytes_unlock();
+		_flash_erase_option_bytes();
+
+		for (unsigned i = 0; i < 8; i++)
+			_flash_program_option_bytes((uint32_t)(&FLASH_OPT_BYTES[i]), opt[i]);
+
 		_full_system_reset();
 	}
 
@@ -487,4 +519,9 @@ void *memcpy(void * dst, const void * src, size_t count) {
 	return dst;
 }
 
+// Config checks
+
+#if defined(ENABLE_WRITEPROT) && defined(ENABLE_PROTECTIONS)
+  #error "ENABLE_PROTECTIONS already includes the same protections as ENABLE_WRITEPROT, do not specify both!"
+#endif
 
