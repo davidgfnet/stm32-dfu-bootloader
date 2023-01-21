@@ -1,0 +1,28 @@
+
+This tool allows users to upgrade the bootloader over USB. The process is
+destructive since it requires wiping the user app to install the upgrader.
+Also, once the new bootloader is upgraded, a mass erase is performed, so
+that a new app can be installed. Please backup your firmware/data if
+necessary. The process works as follows:
+
+ - (Optional) Create a user-firmware backup using DFU upload (this is not
+   possible if the bootloader does not support upload, was not built with
+   ENABLE_DFU_UPLOAD).
+ - Flash the upgrader firmware using a DFU flasher.
+ - Reset the device. It should run the upgrader firmware and enumerate as a
+   "Bootloader Upgrade Tool" device.
+ - (Optional) If the current bootloader is configured with ENABLE_WRITEPROT
+   you will need to unlock the write protections (see client.exe -u). If you
+   do not know check `-i` option. Usually `-u` option is used to unprotect
+   the bootloader area, followed by a `-r` reboot.
+ - Use the client upgrader tool (ie. ./client.exe image.bin)
+
+The way the upgrader works is by chain loading the upgrader app into RAM and
+flashing the bootloader from there. This is not strictly necessary but just
+convenient, since it performs a full mass erase.
+
+The bootloaders configured with ENABLE_WRITEPROT will auto-protect themselves
+on reset if the bootloader protection was removed. To avoid this there's a
+reboot mode (reboot-to-upgrader) that essentially skips these checks on startup
+so that the bootloader can be upgraded.
+

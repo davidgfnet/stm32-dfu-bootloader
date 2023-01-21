@@ -1,0 +1,3 @@
+[submodule "upgrade/libopencm3"]
+	path = upgrade/libopencm3
+	url = https://github.com/libopencm3/libopencm3/
