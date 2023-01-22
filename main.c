@@ -169,7 +169,10 @@ static void usbdfu_getstatus_complete(struct usb_setup_data *req) {
 		usbdfu_state = STATE_DFU_DNLOAD_IDLE;
 		return;
 	case STATE_DFU_MANIFEST:
-		return;  // Reset placed in main loop.
+		// Perform reset
+		clear_reboot_flags();
+		_full_system_reset();
+		return;
 	default:
 		return;
 	}
@@ -183,6 +186,7 @@ usbdfu_control_request(struct usb_setup_data *req,
 		if ((len == NULL) || (*len == 0)) {
 			// wLength = 0 means leave DFU
 			usbdfu_state = STATE_DFU_MANIFEST_SYNC;
+			*complete = usbdfu_getstatus_complete;
 			return USBD_REQ_HANDLED;
 		} else {
 			/* Copy download data for use on GET_STATUS. */
@@ -205,7 +209,8 @@ usbdfu_control_request(struct usb_setup_data *req,
 		usbdfu_state = STATE_DFU_IDLE;
 		return USBD_REQ_HANDLED;
 	case DFU_DETACH:
-		usbdfu_state = STATE_DFU_MANIFEST;
+		usbdfu_state = STATE_DFU_MANIFEST_SYNC;
+		*complete = usbdfu_getstatus_complete;
 		return USBD_REQ_HANDLED;
 	case DFU_UPLOAD:
 		// Send data back to host by reading the image.
@@ -501,11 +506,6 @@ int main(void) {
 	while (1) {
 		// Poll based approach
 		do_usb_poll();
-		if (usbdfu_state == STATE_DFU_MANIFEST) {
-			// USB device must detach, we just reset...
-			clear_reboot_flags();
-			_full_system_reset();
-		}
 	}
 }
 
