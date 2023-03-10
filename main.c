@@ -54,7 +54,7 @@ const char * const _usb_strings[5] = {
 	// Interface desc string
 	/* This string is used by ST Microelectronics' DfuSe utility. */
 	/* Change check_do_erase() accordingly */
-	"@Internal Flash /0x08000000/"
+	"@Internal Flash /" STR(FLASH_BASE_ADDR) "/"
 	  STR(FLASH_BOOTLDR_SIZE_KB) "*001Ka,"
 	  STR(FLASH_BOOTLDR_PAYLOAD_SIZE_KB) "*001Kg",
 	// Config desc string
@@ -123,8 +123,8 @@ static void usbdfu_getstatus_complete(struct usb_setup_data *req) {
 	(void)req;
 
 	// Protect the flash by only writing to the valid flash area
-	const uint32_t start_addr = 0x08000000 + (FLASH_BOOTLDR_SIZE_KB*1024);
-	const uint32_t end_addr   = 0x08000000 + (        FLASH_SIZE_KB*1024);
+	const uint32_t start_addr = FLASH_BASE_ADDR + (FLASH_BOOTLDR_SIZE_KB*1024);
+	const uint32_t end_addr   = FLASH_BASE_ADDR + (        FLASH_SIZE_KB*1024);
 
 	switch (usbdfu_state) {
 	case STATE_DFU_DNBUSY:
@@ -230,8 +230,8 @@ usbdfu_control_request(struct usb_setup_data *req,
 			#else
 			// From formula Address_Pointer + ((wBlockNum - 2)*wTransferSize)
 			uint32_t baseaddr = prog.addr + ((req->wValue - 2) * DFU_TRANSFER_SIZE);
-			const uint32_t start_addr = 0x08000000 + (FLASH_BOOTLDR_SIZE_KB*1024);
-			const uint32_t end_addr   = 0x08000000 + (        FLASH_SIZE_KB*1024);
+			const uint32_t start_addr = FLASH_BASE_ADDR + (FLASH_BOOTLDR_SIZE_KB*1024);
+			const uint32_t end_addr   = FLASH_BASE_ADDR + (        FLASH_SIZE_KB*1024);
 			if (baseaddr >= start_addr && baseaddr + DFU_TRANSFER_SIZE <= end_addr) {
 				memcpy(usbd_control_buffer, (void*)baseaddr, DFU_TRANSFER_SIZE);
 				*len = DFU_TRANSFER_SIZE;
@@ -507,6 +507,7 @@ int main(void) {
 		// Poll based approach
 		do_usb_poll();
 	}
+	__builtin_unreachable();
 }
 
 // Implement this here to save space, quite minimalistic :D
