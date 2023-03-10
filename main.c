@@ -256,7 +256,7 @@ usbdfu_control_request(struct usb_setup_data *req,
 		return USBD_REQ_HANDLED;
 		}
 	case DFU_GETSTATE:
-		// Return state with no state transision.
+		// Return state with no state transition.
 		usbd_control_buffer[0] = usbdfu_state;
 		*len = 1;
 		return USBD_REQ_HANDLED;
