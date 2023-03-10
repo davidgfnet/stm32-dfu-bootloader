@@ -25,7 +25,7 @@ MEMORY
 	ram (rwx) : ORIGIN = 0x20000000, LENGTH = 20480 - 8
 }
 
-/* Enforce emmition of the vector table. */
+/* Enforce emission of the vector table. */
 EXTERN (vector_table)
 
 /* Define the entry point of the output file. */

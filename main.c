@@ -27,7 +27,7 @@
 #define CMD_SETADDR	0x21
 #define CMD_ERASE	0x41
 
-// Payload/app comes inmediately after Bootloader
+// Payload/app comes immediately after Bootloader
 #define APP_ADDRESS (FLASH_BASE_ADDR + (FLASH_BOOTLDR_SIZE_KB)*1024)
 
 // USB control data buffer
@@ -243,7 +243,7 @@ usbdfu_control_request(struct usb_setup_data *req,
 		}
 		return USBD_REQ_HANDLED;
 	case DFU_GETSTATUS: {
-		// Perfom the action and register complete callback.
+		// Perform the action and register complete callback.
 		uint32_t bwPollTimeout = 0; /* 24-bit integer in DFU class spec */
 		usbd_control_buffer[0] = usbdfu_getstatus(&bwPollTimeout);
 		usbd_control_buffer[1] = bwPollTimeout & 0xFF;
@@ -492,7 +492,7 @@ int main(void) {
 	*USB_CNTR_REG = USB_CNTR_PWDN;
 	/*
 	 * Vile hack to reenumerate, physically _drag_ d+ low.
-	 * (need at least 2.5us to trigger usb disconnect)
+	 * (need at least 2.5us to trigger USB disconnect)
 	 */
 	rcc_gpio_enable(GPIOA);
 	gpio_set_output(GPIOA, 12);
