@@ -18,6 +18,7 @@
 
 #include "flash_config.h"
 #include <string.h>
+#include <stdbool.h>
 #include "usb.h"
 #include "reboot.h"
 #include "flash.h"
@@ -386,6 +387,15 @@ static void clock_setup_in_hse_8mhz_out_72mhz() {
     RCC_CFGR = (RCC_CFGR & ~RCC_CFGR_SW) | (RCC_CFGR_SW_SYSCLKSEL_PLLCLK << RCC_CFGR_SW_SHIFT);
 }
 
+bool validate_checksum(const uint32_t * const image, unsigned size) {
+	// Do some simple XOR checking
+	uint32_t xorv = 0xB4DC0FEE;
+	for (unsigned i = 0; i < size; i++)
+		xorv ^= image[i];
+
+	return xorv == 0;
+}
+
 int main(void) {
 	/* Boot the application if it seems valid and we haven't been
 	 * asked to reboot into DFU mode. This should make the CPU to
@@ -439,10 +449,9 @@ int main(void) {
 	*_AFIO_MAPR = (*_AFIO_MAPR & ~(0x7 << 24)) | (0x4 << 24);
 	#endif
 
+	#ifdef ENABLE_CHECKSUM
 	const uint32_t start_addr = 0x08000000 + (FLASH_BOOTLDR_SIZE_KB*1024);
 	const uint32_t * const base_addr = (uint32_t*)start_addr;
-
-	#ifdef ENABLE_CHECKSUM
 	uint32_t imagesize = base_addr[0x20 / 4];
 	#else
 	uint32_t imagesize = 0;
@@ -463,12 +472,10 @@ int main(void) {
 	if (!go_dfu &&
 	   (*(volatile uint32_t *)APP_ADDRESS & 0x2FFE0000) == 0x20000000) {
 
-		// Do some simple XOR checking
-		uint32_t xorv = 0xB4DC0FEE;
-		for (unsigned i = 0; i < imagesize; i++)
-			xorv ^= base_addr[i];
-
-		if (xorv == 0) {  // Matches!
+		#ifdef ENABLE_CHECKSUM
+		if (validate_checksum(base_addr, imagesize))
+		#endif
+		{
 			// Clear flags
 			clear_reboot_flags();
 			#ifdef ENABLE_WATCHDOG
