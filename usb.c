@@ -262,6 +262,13 @@ static enum usbd_request_return_codes usb_standard_get_descriptor() {
 			/* Send sane Language ID descriptor... */
 			sd->wData[0] = USB_LANGID_ENGLISH_US;
 			datasize = sd->bLength = sizeof(sd->bLength) + sizeof(sd->bDescriptorType) + sizeof(sd->wData[0]);
+		#ifdef WINUSB_SUPPORT
+		} else if (descr_idx == 0xEE) {
+			const char winusbstr[] = {'M','S','F','T','1','0','0','A','\0'};
+			for (int i = 0; i < sizeof(winusbstr); i++)
+				sd->wData[i] = winusbstr[i];
+			datasize = sd->bLength = sizeof(sd->bLength) + sizeof(sd->bDescriptorType) + sizeof(winusbstr)*2;
+		#endif
 		} else {
 			array_idx = descr_idx - 1;
 
@@ -390,6 +397,30 @@ static enum usbd_request_return_codes usb_control_request_dispatch() {
 		if (result == USBD_REQ_HANDLED || result == USBD_REQ_NOTSUPP)
 			return result;
 	}
+
+	#ifdef WINUSB_SUPPORT
+	const uint8_t wtype = USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE;
+	const uint8_t wmask = USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT;
+	if ((usb_req.bmRequestType & wmask) == wtype && usb_req.bRequest == 0x41 /* A */) {
+		// From https://github.com/pbatard/libwdi/wiki/WCID-Devices
+		const uint8_t winusb_desc[] = {
+			0x28, 0x00, 0x00, 0x00,       // Descriptor length (32bit word) (40 bytes)
+			0x00, 0x01,                   // bcdVersion (1.0)
+			0x04, 0x00,                   // wIndex = 0x0004 (Compat ID descriptor Index)
+			0x01,                         // Num of sections (1)
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Reserved (7bytes)
+			0x00,                         // interface num (0)
+			0x01,                         // Reserved
+			0x57, 0x49, 0x4E, 0x55, 0x53, 0x42, 0x00, 0x00, // compatibleID[8]    "WINUSB\0\0"
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // subCompatibleID[6] ""
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00  //Reserved
+		};
+
+		memcpy(usbd_control_buffer, winusb_desc, sizeof(winusb_desc));
+		datasize = sizeof(winusb_desc);
+		return USBD_REQ_HANDLED;
+	}
+	#endif
 
 	/* Try standard request if not already handled. */
 	return _usbd_standard_request();
