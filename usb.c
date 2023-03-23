@@ -276,7 +276,7 @@ static enum usbd_request_return_codes usb_standard_get_descriptor() {
 			if (array_idx >= sizeof(_usb_strings) / sizeof(_usb_strings[0]))
 				return USBD_REQ_NOTSUPP;
 
-			/* Strings with Language ID differnet from
+			/* Strings with Language ID different from
 			 * USB_LANGID_ENGLISH_US are not supported */
 			if (usb_req.wIndex != USB_LANGID_ENGLISH_US)
 				return USBD_REQ_NOTSUPP;

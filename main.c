@@ -28,7 +28,7 @@
 #define CMD_SETADDR	0x21
 #define CMD_ERASE	0x41
 
-// Payload/app comes inmediately after Bootloader
+// Payload/app comes immediately after Bootloader
 #define APP_ADDRESS (FLASH_BASE_ADDR + (FLASH_BOOTLDR_SIZE_KB)*1024)
 
 // USB control data buffer
@@ -55,7 +55,7 @@ const char * const _usb_strings[5] = {
 	// Interface desc string
 	/* This string is used by ST Microelectronics' DfuSe utility. */
 	/* Change check_do_erase() accordingly */
-	"@Internal Flash /0x08000000/"
+	"@Internal Flash /" STR(FLASH_BASE_ADDR) "/"
 	  STR(FLASH_BOOTLDR_SIZE_KB) "*001Ka,"
 	  STR(FLASH_BOOTLDR_PAYLOAD_SIZE_KB) "*001Kg",
 	// Config desc string
@@ -124,8 +124,8 @@ static void usbdfu_getstatus_complete(struct usb_setup_data *req) {
 	(void)req;
 
 	// Protect the flash by only writing to the valid flash area
-	const uint32_t start_addr = 0x08000000 + (FLASH_BOOTLDR_SIZE_KB*1024);
-	const uint32_t end_addr   = 0x08000000 + (        FLASH_SIZE_KB*1024);
+	const uint32_t start_addr = FLASH_BASE_ADDR + (FLASH_BOOTLDR_SIZE_KB*1024);
+	const uint32_t end_addr   = FLASH_BASE_ADDR + (        FLASH_SIZE_KB*1024);
 
 	switch (usbdfu_state) {
 	case STATE_DFU_DNBUSY:
@@ -231,8 +231,8 @@ usbdfu_control_request(struct usb_setup_data *req,
 			#else
 			// From formula Address_Pointer + ((wBlockNum - 2)*wTransferSize)
 			uint32_t baseaddr = prog.addr + ((req->wValue - 2) * DFU_TRANSFER_SIZE);
-			const uint32_t start_addr = 0x08000000 + (FLASH_BOOTLDR_SIZE_KB*1024);
-			const uint32_t end_addr   = 0x08000000 + (        FLASH_SIZE_KB*1024);
+			const uint32_t start_addr = FLASH_BASE_ADDR + (FLASH_BOOTLDR_SIZE_KB*1024);
+			const uint32_t end_addr   = FLASH_BASE_ADDR + (        FLASH_SIZE_KB*1024);
 			if (baseaddr >= start_addr && baseaddr + DFU_TRANSFER_SIZE <= end_addr) {
 				memcpy(usbd_control_buffer, (void*)baseaddr, DFU_TRANSFER_SIZE);
 				*len = DFU_TRANSFER_SIZE;
@@ -244,7 +244,7 @@ usbdfu_control_request(struct usb_setup_data *req,
 		}
 		return USBD_REQ_HANDLED;
 	case DFU_GETSTATUS: {
-		// Perfom the action and register complete callback.
+		// Perform the action and register complete callback.
 		uint32_t bwPollTimeout = 0; /* 24-bit integer in DFU class spec */
 		usbd_control_buffer[0] = usbdfu_getstatus(&bwPollTimeout);
 		usbd_control_buffer[1] = bwPollTimeout & 0xFF;
@@ -257,7 +257,7 @@ usbdfu_control_request(struct usb_setup_data *req,
 		return USBD_REQ_HANDLED;
 		}
 	case DFU_GETSTATE:
-		// Return state with no state transision.
+		// Return state with no state transition.
 		usbd_control_buffer[0] = usbdfu_state;
 		*len = 1;
 		return USBD_REQ_HANDLED;
@@ -499,7 +499,7 @@ int main(void) {
 	*USB_CNTR_REG = USB_CNTR_PWDN;
 	/*
 	 * Vile hack to reenumerate, physically _drag_ d+ low.
-	 * (need at least 2.5us to trigger usb disconnect)
+	 * (need at least 2.5us to trigger USB disconnect)
 	 */
 	rcc_gpio_enable(GPIOA);
 	gpio_set_output(GPIOA, 12);
@@ -514,6 +514,7 @@ int main(void) {
 		// Poll based approach
 		do_usb_poll();
 	}
+	__builtin_unreachable();
 }
 
 // Implement this here to save space, quite minimalistic :D

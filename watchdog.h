@@ -16,7 +16,7 @@
 #define LSI_ON    (1 <<  0)
 #define RCC_CSR   (*(volatile uint32_t*)0x40021024U)
 
-// Enables the watchdog using a period of 1/(40Khz / 256 / 4095) = 26.2s
+// Enables the watchdog using a period of 1/(40kHz / 256 / 4095) = 26.2s
 static void enable_iwdg(uint16_t rldval) {
 	// First start LSI oscillator
 	RCC_CSR |= LSI_ON;

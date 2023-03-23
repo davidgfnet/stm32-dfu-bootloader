@@ -34,7 +34,7 @@ vector_table:
 .thumb
 
 # This simple code copies the payload (at the end of the file) into RAM
-# According to stm32f103-ram.ld the payload starts at the begining of the RAM
+# According to stm32f103-ram.ld the payload starts at the beginning of the RAM
 # and takes less than 10KB, followed by data/bss sections and the stack.
 # It relocates the VTOR and sets up the stack before jumping to execute the
 # (now in RAM) payload.

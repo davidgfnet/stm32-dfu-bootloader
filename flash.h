@@ -110,8 +110,8 @@ static void check_do_erase() {
 	if (erased) return;
 
 	/* Change usb_strings accordingly */
-	const uint32_t start_addr = 0x08000000 + (FLASH_BOOTLDR_SIZE_KB*1024);
-	const uint32_t end_addr   = 0x08000000 + (        FLASH_SIZE_KB*1024);
+	const uint32_t start_addr = FLASH_BASE_ADDR + (FLASH_BOOTLDR_SIZE_KB*1024);
+	const uint32_t end_addr   = FLASH_BASE_ADDR + (        FLASH_SIZE_KB*1024);
 	for (uint32_t addr = start_addr; addr < end_addr; addr += 1024)
 		if (!_flash_page_is_erased(addr))
 			_flash_erase_page(addr);
