@@ -9,6 +9,8 @@
 #define FLASH_CR_PER    (1 << 1)
 #define FLASH_CR_PG     (1 << 0)
 #define FLASH_SR_BSY    (1 << 0)
+#define FLASH_SR_PGERR  (1 << 2)
+#define FLASH_SR_WPERR  (1 << 4)
 #define FLASH_KEYR    (*(volatile uint32_t*)0x40022004U)
 #define FLASH_OPTKEYR (*(volatile uint32_t*)0x40022008U)
 #define FLASH_SR      (*(volatile uint32_t*)0x4002200CU)
@@ -41,7 +43,8 @@ static void _flash_erase_page(uint32_t page_address) {
 
 	_flash_wait_for_last_operation();
 
-	FLASH_CR &= ~FLASH_CR_PER;
+	while (FLASH_CR & FLASH_CR_PER)
+		FLASH_CR &= ~FLASH_CR_PER;
 }
 
 static int _flash_page_is_erased(uint32_t addr) {
