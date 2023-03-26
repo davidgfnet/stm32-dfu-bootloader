@@ -32,7 +32,10 @@ static void _flash_unlock() {
 }
 
 #define _flash_wait_for_last_operation() \
-	while (FLASH_SR & FLASH_SR_BSY);
+	/* 1 cycle wait, see STM32 errata */ \
+	do {                                 \
+		__asm__ volatile("nop");         \
+	} while (FLASH_SR & FLASH_SR_BSY);
 
 static void _flash_erase_page(uint32_t page_address) {
 	_flash_wait_for_last_operation();
@@ -43,8 +46,7 @@ static void _flash_erase_page(uint32_t page_address) {
 
 	_flash_wait_for_last_operation();
 
-	while (FLASH_CR & FLASH_CR_PER)
-		FLASH_CR &= ~FLASH_CR_PER;
+	FLASH_CR &= ~FLASH_CR_PER;
 }
 
 static int _flash_page_is_erased(uint32_t addr) {
