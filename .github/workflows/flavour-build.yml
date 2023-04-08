@@ -17,14 +17,11 @@ jobs:
           submodules: recursive
       - name: Build bootloader
         run: make
-      - name: Get short SHA
-        id: slug
-        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
       - name: Upload artifacts
         if: ${{ success() }}
         uses: actions/upload-artifact@v2
         with:
-          name: stm32-dfu-bootloader-${SHORT_SHA}
+          name: stm32-dfu-bootloader.zip
           path: |
             bootloader-dfu-fw.bin
             bootloader-dfu-fw.elf
