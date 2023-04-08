@@ -25,5 +25,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: stm32-dfu-bootloader-${{ steps.slug.outputs.sha8 }}
-          path: bootloader-dfu-fw.bin bootloader-dfu-fw.elf
+          path: |
+            bootloader-dfu-fw.bin
+            bootloader-dfu-fw.elf
 
