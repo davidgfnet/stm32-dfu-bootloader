@@ -1,0 +1,29 @@
+name: Build firmware images
+run-name: Build FW images for several flavors
+
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  bootloader-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: sudo apt-get install -y gcc-arm-none-eabi
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Build bootloader
+        run: make
+      - name: Get short SHA
+        id: slug
+        run: echo "sha8=$(echo ${GITHUB_SHA} | cut -c1-8)"
+      - name: Upload artifacts
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: stm32-dfu-bootloader-${{ steps.slug.outputs.sha8 }}
+          path: bootloader-dfu-fw.bin bootloader-dfu-fw.elf
+
