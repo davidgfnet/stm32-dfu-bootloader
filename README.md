@@ -97,3 +97,17 @@ Config flags
 
 By default all flags are set except for DFU upload, so it's most secure.
 
+
+Config header
+-------------
+
+You can customize some bootloader parameters in *user_config.h* header or also define them in
+CONFIG environment variable.
+
+* USB_VID: Sets Vendor ID. Default is `0xdead`.
+* USB_PID: Sets Product ID. Default is `0xca5d`.
+* USB_MANUFACTURER: Sets iManufacturer string. Default is `"davidgf.net (libopencm3 based)"`.
+* USB_PRODUCT: Sets iProduct string. Default is `"DFU bootloader [" VERSION "]"`, where `VERSION` is
+  git tag version.
+* USB_SERIALNUMBER: Sets iSerialNumber string. Default is chip's unique ID.
+

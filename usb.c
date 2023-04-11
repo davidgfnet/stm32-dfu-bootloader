@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "usb.h"
+#include "config.h"
 
 // Defined in main
 extern uint8_t usbd_control_buffer[1024];

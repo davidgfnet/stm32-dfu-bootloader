@@ -23,6 +23,7 @@
 #include "reboot.h"
 #include "flash.h"
 #include "watchdog.h"
+#include "config.h"
 
 /* Commands sent with wBlockNum == 0 as per ST implementation. */
 #define CMD_SETADDR	0x21
@@ -43,15 +44,21 @@ static struct {
 	uint16_t blocknum;
 } prog;
 
+#ifndef USB_SERIALNUMBER
 // Serial number to expose via USB
 static char serial_no[25];
+#endif
 
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 const char * const _usb_strings[5] = {
-	"davidgf.net (libopencm3 based)", // iManufacturer
-	"DFU bootloader [" VERSION "]", // iProduct
+	USB_MANUFACTURER, // iManufacturer
+	USB_PRODUCT, // iProduct
+#ifndef USB_SERIALNUMBER
 	serial_no, // iSerialNumber
+#else
+	USB_SERIALNUMBER, // iSerialNumber
+#endif
 	// Interface desc string
 	/* This string is used by ST Microelectronics' DfuSe utility. */
 	/* Change check_do_erase() accordingly */
@@ -77,6 +84,7 @@ const char * const _usb_strings[5] = {
 	#endif
 };
 
+#ifndef USB_SERIALNUMBER
 static const char hcharset[16] = "0123456789abcdef";
 static void get_dev_unique_id(char *s) {
 	volatile uint8_t *unique_id = (volatile uint8_t *)0x1FFFF7E8;
@@ -86,6 +94,7 @@ static void get_dev_unique_id(char *s) {
 		s[i+1] = hcharset[*unique_id++ & 0xF];
 	}
 }
+#endif
 
 static uint8_t usbdfu_getstatus(uint32_t *bwPollTimeout) {
 	switch (usbdfu_state) {
@@ -507,7 +516,9 @@ int main(void) {
 	for (unsigned int i = 0; i < 100000; i++)
 		__asm__("nop");
 
+#ifndef USB_SERIALNUMBER
 	get_dev_unique_id(serial_no);
+#endif
 	usb_init();
 
 	while (1) {
