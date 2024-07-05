@@ -286,7 +286,7 @@ inline static void gpio_set_mode(uint32_t gpiodev, uint16_t gpion, uint8_t mode)
 }
 
 #define gpio_set_output(a,b)    gpio_set_mode(a,b,0x2)
-#define gpio_set_input(a,b)     gpio_set_mode(a,b,0x0)
+#define gpio_set_input(a,b)     gpio_set_mode(a,b,0x4)
 #define gpio_set_input_pp(a,b)  gpio_set_mode(a,b,0x8)
 
 #define gpio_clear(gpiodev, gpion) \
@@ -300,8 +300,12 @@ inline static void gpio_set_mode(uint32_t gpiodev, uint16_t gpion, uint8_t mode)
 #ifdef ENABLE_GPIO_DFU_BOOT
 int force_dfu_gpio() {
 	rcc_gpio_enable(GPIO_DFU_BOOT_PORT);
+#ifdef GPIO_DFU_BOOT_PIN_NOPD
+	gpio_set_input(GPIO_DFU_BOOT_PORT, GPIO_DFU_BOOT_PIN);
+#else
 	gpio_set_input_pp(GPIO_DFU_BOOT_PORT, GPIO_DFU_BOOT_PIN);
 	gpio_clear(GPIO_DFU_BOOT_PORT, GPIO_DFU_BOOT_PIN);
+#endif
 	for (unsigned int i = 0; i < 512; i++)
 		__asm__("nop");
 	uint16_t val = gpio_read(GPIO_DFU_BOOT_PORT, GPIO_DFU_BOOT_PIN);
